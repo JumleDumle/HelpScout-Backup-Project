@@ -1,8 +1,18 @@
+"""
+Help Scout API to Local JSON Backup Tool
+Author: Julius Vendorf, FysioCamp
+Description: Authenticates with the Help Scout API, retrieves all mailboxes, and 
+safely downloads conversation histories. Handles pagination, rate-limiting, 
+auto-retries, and outputs data page-by-page into memory-safe, organized JSON files.
+"""
+
 import requests
 import time
 import json
 import os
 from dotenv import load_dotenv
+# I saved the .env file in the folder above this one, because I couldn't get .gitignore to work properly
+load_dotenv('../api_Script.env')
 
 # --- Configuration ---
 # REMEMBER: Use your newly generated credentials!
@@ -11,9 +21,20 @@ APP_SECRET = 'HELP_SCOUT_APP_SECRET'
 BASE_URL = 'https://api.helpscout.net/v2'
 
 def get_access_token():
+    # 1. Safety check!
+    if not APP_ID or not APP_SECRET:
+        raise ValueError("CRITICAL ERROR: APP_ID or APP_SECRET is missing. Check your .env file!")
+
     auth_url = f"{BASE_URL}/oauth2/token"
     payload = {'grant_type': 'client_credentials', 'client_id': APP_ID, 'client_secret': APP_SECRET}
+    
     response = requests.post(auth_url, data=payload)
+    
+    # 2. Better Error Reporting
+    if response.status_code == 400:
+        print("400 Bad Request! Help Scout rejected the credentials.")
+        print("Response from Help Scout:", response.text) # This will print the exact reason!
+        
     response.raise_for_status()
     return response.json()['access_token']
 
@@ -87,7 +108,7 @@ def fetch_conversations_for_mailbox(mailbox_id, mailbox_name, token):
             total_elements = data.get('page', {}).get('totalElements', 0)
             print(f"Total conversations in {mailbox_name}: {total_elements}")
             
-        # --- NEW MEMORY-SAFE SAVE MECHANISM ---
+        # --- MEMORY-SAFE SAVE MECHANISM ---
         if '_embedded' in data and 'conversations' in data['_embedded']:
             page_data = data['_embedded']['conversations']
             

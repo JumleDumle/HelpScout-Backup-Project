@@ -1,1 +1,4 @@
-.env
+*.env
+# ignore sub-directories where conversations are outputted
+/*/
+*.json
