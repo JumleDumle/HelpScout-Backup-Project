@@ -11,13 +11,12 @@ import time
 import json
 import os
 from dotenv import load_dotenv
-# I saved the .env file in the folder above this one, because I couldn't get .gitignore to work properly
-load_dotenv('../api_Script.env')
+load_dotenv()
 
 # --- Configuration ---
-# REMEMBER: Use your newly generated credentials!
-APP_ID = 'HELP_SCOUT_APP_ID'
-APP_SECRET = 'HELP_SCOUT_APP_SECRET'
+# REMEMBER: Use your newly generated credentials and put them in the .env file!
+APP_ID = os.getenv('HELP_SCOUT_APP_ID')
+APP_SECRET = os.getenv('HELP_SCOUT_APP_SECRET')
 BASE_URL = 'https://api.helpscout.net/v2'
 
 def get_access_token():
