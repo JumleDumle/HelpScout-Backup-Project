@@ -1,4 +1,3 @@
-```markdown
 # Help Scout Conversation Backup Tool
 
 A robust Python utility designed to automatically extract and back up all historical conversation threads across an entire Help Scout account. 
