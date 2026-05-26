@@ -123,7 +123,6 @@ def process_json_to_csv():
                 print(f"Error processing file {file_path}: {e}")
 
     print(f"\nSuccess! Compiled {total_tickets_processed} tickets into {OUTPUT_CSV_NAME}.")
-    print("This file is now ready to be securely stored or imported as a new board.")
-
+    
 if __name__ == "__main__":
     process_json_to_csv()
