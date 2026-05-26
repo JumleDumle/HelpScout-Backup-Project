@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 
 # Go up one dir and load .env file
-load_dotenv('auto-replies-export.env')
+load_dotenv('name_of_file.env')
 
 APP_ID = os.getenv('HELP_SCOUT_APP_ID')
 APP_SECRET = os.getenv('HELP_SCOUT_APP_SECRET')
