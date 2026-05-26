@@ -2,3 +2,4 @@
 # ignore sub-directories where conversations are outputted
 /*/
 *.json
+*.csv

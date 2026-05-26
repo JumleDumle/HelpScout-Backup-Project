@@ -63,34 +63,59 @@ def get_saved_replies_for_mailbox(headers, mailbox_id):
         response.raise_for_status()
         data = response.json()
         
-        # Fallback in case the API directly returns a list 
+        current_replies = []
+        
+        # 1. Safely extract the list of replies whether it's a list or a dict
         if isinstance(data, list):
-            replies.extend(data)
+            current_replies = data
+            url = None  # Direct lists don't have pagination links, so we end the loop
+        elif isinstance(data, dict):
+            embedded = data.get("_embedded", {})
+            if not isinstance(embedded, dict):
+                embedded = {}
+            
+            current_replies = embedded.get("saved-replies") or embedded.get("savedReplies") or []
+            
+            # Safely extract pagination links
+            links = data.get("_links", {})
+            if not isinstance(links, dict):
+                links = {}
+                
+            next_link = links.get("next")
+            if isinstance(next_link, dict):
+                url = next_link.get("href")
+            else:
+                url = None
+        else:
             break
             
-        # FIX: Extract _embedded safely. 
-        # If the API returns an empty list `[]` instead of `{}`, we force it to be an empty dict
-        embedded = data.get("_embedded")
-        if not isinstance(embedded, dict):
-            embedded = {}
-            
-        # Extract replies safely (checking both known HelpScout key formats just to be safe)
-        current_replies = embedded.get("saved-replies") or embedded.get("savedReplies") or []
-        
+        # 2. Fetch the full text for each individual reply
         if isinstance(current_replies, list):
-            replies.extend(current_replies)
-            
-        # FIX: Safely extract pagination links to prevent similar crashes
-        links = data.get("_links")
-        if not isinstance(links, dict):
-            links = {}
-            
-        next_link = links.get("next")
-        if isinstance(next_link, dict):
-            url = next_link.get("href")
-        else:
-            url = None
-            
+            for basic_reply in current_replies:
+                if not isinstance(basic_reply, dict):
+                    continue
+                    
+                reply_id = basic_reply.get("id")
+                if reply_id:
+                    full_reply_url = f"{BASE_URL}/mailboxes/{mailbox_id}/saved-replies/{reply_id}"
+                    full_resp = requests.get(full_reply_url, headers=headers)
+                    
+                    if full_resp.status_code == 200:
+                        replies.append(full_resp.json())
+                    elif full_resp.status_code == 429:
+                        print("Rate limit reached on individual fetch. Sleeping for 5...")
+                        time.sleep(5)
+                        # Retry once
+                        full_resp = requests.get(full_reply_url, headers=headers)
+                        if full_resp.status_code == 200:
+                            replies.append(full_resp.json())
+                        else:
+                            replies.append(basic_reply)
+                    else:
+                        replies.append(basic_reply)
+                else:
+                    replies.append(basic_reply)
+                    
     return replies
 
 def main():
