@@ -53,4 +53,4 @@ def convert_helpscout_json_to_csv(json_filepath, csv_filepath):
     print(f"Successfully converted to {csv_filepath}")
 
 # Execute the conversion
-convert_helpscout_json_to_csv('helpscout_export.json', 'helpscout_export.csv')
+convert_helpscout_json_to_csv('helpscout_saved_replies.json', 'helpscout_saved_replies.csv')
